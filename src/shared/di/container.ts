@@ -9,14 +9,14 @@
  * basta con intercambiar el repositorio en este único lugar.
  */
 
-// ── Infrastructure (adaptadores secundarios) ───────────────────────────────
-import { InMemoryFeatureRepository }      from '../../infrastructure/repositories/InMemoryFeatureRepository'
-import { InMemoryTestimonialRepository }  from '../../infrastructure/repositories/InMemoryTestimonialRepository'
-import { InMemoryFAQRepository }          from '../../infrastructure/repositories/InMemoryFAQRepository'
+// ── Infrastructure (adaptadores secundarios — API REST) ────────────────────
+import { ApiFeatureRepository }      from '../../infrastructure/repositories/ApiFeatureRepository'
+import { ApiTestimonialRepository }  from '../../infrastructure/repositories/ApiTestimonialRepository'
+import { ApiFAQRepository }          from '../../infrastructure/repositories/ApiFAQRepository'
+import { ApiBenefitRepository }      from '../../infrastructure/repositories/ApiBenefitRepository'
+import { ApiPlatformStatRepository } from '../../infrastructure/repositories/ApiPlatformStatRepository'
 import { InMemoryHowItWorksRepository }   from '../../infrastructure/repositories/InMemoryHowItWorksRepository'
-import { InMemoryBenefitRepository }      from '../../infrastructure/repositories/InMemoryBenefitRepository'
 import { InMemoryProblemRepository }      from '../../infrastructure/repositories/InMemoryProblemRepository'
-import { InMemoryPlatformStatRepository } from '../../infrastructure/repositories/InMemoryPlatformStatRepository'
 
 // ── Application (casos de uso) ─────────────────────────────────────────────
 import { GetFeaturesUseCase }      from '../../application/use-cases/GetFeaturesUseCase'
@@ -29,11 +29,11 @@ import { GetPlatformStatsUseCase } from '../../application/use-cases/GetPlatform
 
 // ── Container ──────────────────────────────────────────────────────────────
 export const container = {
-  getFeaturesUseCase:      new GetFeaturesUseCase(new InMemoryFeatureRepository()),
-  getTestimonialsUseCase:  new GetTestimonialsUseCase(new InMemoryTestimonialRepository()),
-  getFAQsUseCase:          new GetFAQsUseCase(new InMemoryFAQRepository()),
+  getFeaturesUseCase:      new GetFeaturesUseCase(new ApiFeatureRepository()),
+  getTestimonialsUseCase:  new GetTestimonialsUseCase(new ApiTestimonialRepository()),
+  getFAQsUseCase:          new GetFAQsUseCase(new ApiFAQRepository()),
   getHowItWorksUseCase:    new GetHowItWorksUseCase(new InMemoryHowItWorksRepository()),
-  getBenefitsUseCase:      new GetBenefitsUseCase(new InMemoryBenefitRepository()),
+  getBenefitsUseCase:      new GetBenefitsUseCase(new ApiBenefitRepository()),
   getProblemsUseCase:      new GetProblemsUseCase(new InMemoryProblemRepository()),
-  getPlatformStatsUseCase: new GetPlatformStatsUseCase(new InMemoryPlatformStatRepository()),
+  getPlatformStatsUseCase: new GetPlatformStatsUseCase(new ApiPlatformStatRepository()),
 } as const
