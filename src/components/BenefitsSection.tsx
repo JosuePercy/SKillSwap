@@ -53,7 +53,6 @@ export default function BenefitsSection() {
   return (
     <section id="beneficios" className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-medium">
             Beneficios
@@ -69,7 +68,6 @@ export default function BenefitsSection() {
           </p>
         </div>
 
-        {/* Cards */}
         <div className="grid md:grid-cols-3 gap-8">
           {benefitGroups.map((group) => (
             <div
