@@ -1,4 +1,4 @@
-import type { PlatformStat } from '../../entities/PlatformStat'
+import type { PlatformStat } from '../../../domain/entities/PlatformStat'
 
 export interface IPlatformStatRepository {
   getAll(): Promise<PlatformStat[]>

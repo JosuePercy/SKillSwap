@@ -1,4 +1,4 @@
-import type { BenefitGroup } from '../../entities/BenefitGroup'
+import type { BenefitGroup } from '../../../domain/entities/BenefitGroup'
 
 export interface IBenefitRepository {
   getAll(): Promise<BenefitGroup[]>
