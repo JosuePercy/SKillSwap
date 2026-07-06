@@ -15,6 +15,22 @@ function sendRequest(fromUserId: string, toUserId: string): MatchRequest | { err
   }
 }
 
+interface Notification {
+  channel: 'email' | 'push' | 'in-app'
+  toUserId: string
+  event: 'request_sent' | 'request_accepted' | 'message' | 'session_created'
+  content: string
+  createdAt: Date
+}
+
+interface ChatMessage {
+  chatId: string
+  fromUserId: string
+  toUserId: string
+  text: string
+  createdAt: Date
+}
+
 function isChatEnabled(request: MatchRequest): boolean {
   return request.status === 'accepted'
 }
@@ -54,8 +70,56 @@ function rateExchange(
 function triggerNotification(
   event: 'request_sent' | 'request_accepted' | 'message' | 'session_created',
   toUserId: string,
-): { channel: string; toUserId: string; event: string } {
-  return { channel: 'in-app', toUserId, event }
+  channel: 'email' | 'push' | 'in-app' = 'in-app',
+): Notification {
+  const messageByEvent = {
+    request_sent: 'Recibiste una nueva solicitud',
+    request_accepted: 'Tu solicitud fue aceptada',
+    message: 'Tienes un nuevo mensaje',
+    session_created: 'Se creo una nueva sesion',
+  }
+
+  return {
+    channel,
+    toUserId,
+    event,
+    content: messageByEvent[event],
+    createdAt: new Date(),
+  }
+}
+
+function sendMessage(
+  storage: ChatMessage[],
+  chatId: string,
+  fromUserId: string,
+  toUserId: string,
+  text: string,
+): ChatMessage[] {
+  const next = {
+    chatId,
+    fromUserId,
+    toUserId,
+    text,
+    createdAt: new Date(),
+  }
+  return [...storage, next]
+}
+
+function getCalendarByUser(
+  sessions: Array<{ sessionId: string; userAId: string; userBId: string; date: Date }>,
+  userId: string,
+) {
+  return sessions.filter((s) => s.userAId === userId || s.userBId === userId)
+}
+
+function updateReputationAverage(
+  currentAverage: number,
+  currentCount: number,
+  newScore: number,
+): { average: number; count: number } {
+  const nextCount = currentCount + 1
+  const nextAverage = (currentAverage * currentCount + newScore) / nextCount
+  return { average: Number(nextAverage.toFixed(2)), count: nextCount }
 }
 
 // ── PI-03: Emparejamiento → Solicitud ─────────────────────────────────────
@@ -74,6 +138,15 @@ describe('PI-03 | Emparejamiento → Solicitud', () => {
   it('el receptor queda como destinatario de la solicitud', () => {
     const result = sendRequest('u-1', 'u-3')
     if ('id' in result) expect(result.toUserId).toBe('u-3')
+  })
+
+  it('el receptor recibe notificación en tiempo real (simulado)', () => {
+    const startedAt = Date.now()
+    const notif = triggerNotification('request_sent', 'u-2')
+    const elapsed = notif.createdAt.getTime() - startedAt
+
+    expect(notif.toUserId).toBe('u-2')
+    expect(elapsed).toBeLessThan(1000)
   })
 })
 
@@ -96,6 +169,17 @@ describe('PI-04 | Solicitud → Chat', () => {
   it('chat NO habilitado si la solicitud está pendiente', () => {
     expect(isChatEnabled(pendingRequest)).toBe(false)
   })
+
+  it('los mensajes se almacenan y pueden recuperarse correctamente', () => {
+    const chatId = 'chat-1'
+    const storage: ChatMessage[] = []
+    const withOne = sendMessage(storage, chatId, 'u-1', 'u-2', 'Hola!')
+    const withTwo = sendMessage(withOne, chatId, 'u-2', 'u-1', 'Hola, todo bien')
+
+    expect(withTwo).toHaveLength(2)
+    expect(withTwo[0].text).toBe('Hola!')
+    expect(withTwo[1].text).toContain('todo bien')
+  })
 })
 
 // ── PI-05: Chat → Agenda ───────────────────────────────────────────────────
@@ -115,6 +199,19 @@ describe('PI-05 | Chat → Agenda', () => {
   it('caso erróneo: no se puede agendar con solicitud pendiente', () => {
     const result = createSession(pendingRequest, new Date())
     expect('error' in result).toBe(true)
+  })
+
+  it('ambos usuarios ven el evento en sus agendas', () => {
+    const sessionResult = createSession(acceptedRequest, new Date('2026-07-20T18:00:00'))
+    if ('error' in sessionResult) throw new Error('La sesión debió crearse')
+
+    const sessions = [sessionResult]
+    const agendaU1 = getCalendarByUser(sessions, 'u-1')
+    const agendaU2 = getCalendarByUser(sessions, 'u-2')
+
+    expect(agendaU1).toHaveLength(1)
+    expect(agendaU2).toHaveLength(1)
+    expect(agendaU1[0].sessionId).toBe(agendaU2[0].sessionId)
   })
 })
 
@@ -154,6 +251,14 @@ describe('PI-06 | Intercambio → Calificación', () => {
     const result = rateExchange(completedExchange, 'u-1', 'u-2', 6, [])
     expect('error' in result).toBe(true)
   })
+
+  it('la calificación impacta la reputación promedio del usuario', () => {
+    const current = { average: 4.5, count: 2 }
+    const updated = updateReputationAverage(current.average, current.count, 5)
+
+    expect(updated.count).toBe(3)
+    expect(updated.average).toBe(4.67)
+  })
 })
 
 // ── PI-07: Solicitud → Notificaciones ─────────────────────────────────────
@@ -164,6 +269,24 @@ describe('PI-07 | Solicitud → Notificaciones', () => {
     expect(notif.toUserId).toBe('u-2')
     expect(notif.event).toBe('request_sent')
     expect(notif.channel).toBe('in-app')
+  })
+
+  it('puede enviar por canales configurados (email, push, in-app)', () => {
+    const email = triggerNotification('message', 'u-2', 'email')
+    const push = triggerNotification('message', 'u-2', 'push')
+    const inApp = triggerNotification('message', 'u-2', 'in-app')
+
+    expect(email.channel).toBe('email')
+    expect(push.channel).toBe('push')
+    expect(inApp.channel).toBe('in-app')
+  })
+
+  it('el contenido de la notificación corresponde al evento', () => {
+    const requestNotif = triggerNotification('request_sent', 'u-2')
+    const messageNotif = triggerNotification('message', 'u-2')
+
+    expect(requestNotif.content).toContain('solicitud')
+    expect(messageNotif.content).toContain('mensaje')
   })
 
   it('dispara notificación al aceptar solicitud', () => {

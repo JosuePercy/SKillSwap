@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 
 const navLinks = [
-  { label: 'Inicio',          href: '#inicio' },
-  { label: 'Características', href: '#caracteristicas' },
-  { label: 'Cómo Funciona',   href: '#como-funciona' },
-  { label: 'Beneficios',      href: '#beneficios' },
+  { label: 'Inicio',          href: '/#inicio' },
+  { label: 'Acceso',          href: '/acceso' },
+  { label: 'Características', href: '/#caracteristicas' },
+  { label: 'Cómo Funciona',   href: '/#como-funciona' },
+  { label: 'Beneficios',      href: '/#beneficios' },
 ]
 
 export default function Navbar() {
@@ -27,7 +28,7 @@ export default function Navbar() {
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a href="#inicio" className="flex items-center gap-2 group">
+        <a href="/#inicio" className="flex items-center gap-2 group">
           <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-600 to-violet-600 flex items-center justify-center shadow-lg group-hover:shadow-blue-200 transition-shadow duration-300">
             <span className="text-white font-bold text-sm">S</span>
           </div>
@@ -53,13 +54,13 @@ export default function Navbar() {
         {/* CTA Buttons */}
         <div className="hidden md:flex items-center gap-3">
           <a
-            href="#"
+            href="/login"
             className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all duration-200"
           >
             Iniciar Sesión
           </a>
           <a
-            href="#"
+            href="/registro"
             className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm hover:shadow-md hover:shadow-blue-200 transition-all duration-200"
           >
             Registrarse
@@ -98,10 +99,10 @@ export default function Navbar() {
               </li>
             ))}
             <li className="pt-2 pb-1 flex flex-col gap-2">
-              <a href="#" className="px-4 py-2.5 text-sm font-medium text-center text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+              <a href="/login" className="px-4 py-2.5 text-sm font-medium text-center text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
                 Iniciar Sesión
               </a>
-              <a href="#" className="px-4 py-2.5 text-sm font-semibold text-center text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+              <a href="/registro" className="px-4 py-2.5 text-sm font-semibold text-center text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
                 Registrarse
               </a>
             </li>

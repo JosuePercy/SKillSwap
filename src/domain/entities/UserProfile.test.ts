@@ -58,6 +58,18 @@ function searchUsers(
   ]
 }
 
+function searchUsersSafe(
+  skills: UserSkill[],
+  filterSkill: string,
+  filterMode: string,
+): string[] | { error: string } {
+  if (!filterSkill.trim()) return { error: 'Filtro de habilidad inválido' }
+  if (filterMode !== 'teach' && filterMode !== 'learn') {
+    return { error: 'Filtro de modo inválido' }
+  }
+  return searchUsers(skills, filterSkill, filterMode)
+}
+
 // ── PU-03: Creación de perfil ─────────────────────────────────────────────
 
 describe('PU-03 | Creación de perfil', () => {
@@ -147,5 +159,13 @@ describe('PU-05 | Buscar usuarios', () => {
     const result = searchUsers(SKILLS_DB, 'Yoga', 'teach')
     const unique = new Set(result)
     expect(result.length).toBe(unique.size)
+  })
+
+  it('caso erróneo: filtros inválidos -> error controlado', () => {
+    const invalidMode = searchUsersSafe(SKILLS_DB, 'Yoga', 'otro')
+    const invalidSkill = searchUsersSafe(SKILLS_DB, '  ', 'learn')
+
+    expect('error' in invalidMode).toBe(true)
+    expect('error' in invalidSkill).toBe(true)
   })
 })
